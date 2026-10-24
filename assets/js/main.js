@@ -572,7 +572,7 @@
       'The deformation measured from the stress-free state. Stress follows from a hyperelastic strain energy whose material parameters are optimized along with the geometry.',
       'F̃ = F F₀⁻¹,  P̃ = ∂W/∂F̃'],
     uh: ['Mismatch, û',
-      'The difference between prediction and observation. The objective combines a nodal-position misfit with a deformation-gradient misfit and is minimized with exact end-to-end gradients.',
+      'The difference between prediction and observation. The objective combines a nodal-position misfit with a deformation-gradient misfit and is minimized using end-to-end derivatives of the discretized nonlinear FE model.',
       'J = J_x + J_F'],
   };
 

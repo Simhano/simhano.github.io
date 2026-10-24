@@ -104,8 +104,8 @@
     <p>
       I am a Ph.D. student in the School of Mechanical Engineering at Purdue University, advised by
       Prof. Hector Gomez. I started in August 2024. My work combines nonlinear finite element analysis,
-      automatic differentiation and biomechanics, with the goal of making patient-specific models trustworthy
-      enough for diagnosis and surgical planning.
+      automatic differentiation and biomechanics, working toward more reliable patient-specific biomechanical
+      models.
     </p>
     <p>
       Before Purdue, I studied Mechanical Engineering, with a minor in Mathematics, at the University of
@@ -134,9 +134,10 @@
           simulation treats that image as the stress-free starting shape, every prediction built on it is biased.
           Neither the true unloaded shape nor the tissue's stiffness can be measured directly.</dd>
         <dt>Approach</dt>
-        <dd>We make the entire nonlinear finite element solve differentiable (in JAX-FEM), so exact gradients flow
-          from the predicted shape back to both the unknown geometry and the material parameters. Both are
-          optimized together, using two or more images of the same body under different loads.</dd>
+        <dd>We make the entire nonlinear finite element solve differentiable (in JAX-FEM). End-to-end derivatives of
+          the discretized nonlinear FE model carry the mismatch between predicted and observed shapes back to both
+          the unknown geometry and the material parameters. Both are optimized together, using two or more images
+          of the same body under different loads.</dd>
         <dt>Result</dt>
         <dd>On benchmark problems and on a patient-specific breast model built from MRI, with and without a stiff
           tumor, the method recovers the unloaded shape and the region-wise material properties from
@@ -196,8 +197,8 @@
           a single kind.</li>
         <li><strong>More observations help.</strong> Adding observed configurations improves convergence, even when
           they share the same loading direction.</li>
-        <li><strong>A bad initial guess costs time, not accuracy.</strong> Poor starting material values lengthen the
-          early iterations, but with informative data the method converges to the same geometry and parameters.</li>
+        <li><strong>A poor initial guess mainly costs time.</strong> In our tested cases, poor initial material
+          estimates mainly slowed convergence without substantially affecting the final reconstruction accuracy.</li>
       </ol>
     </div>
 
@@ -251,7 +252,7 @@
         <span class="fig-no">Figure 3</span>
         A two-dimensional toy version of the inverse problem: one observation, known stiffness, and a relaxed
         fixed-point update X̃ ← X̃ + α (x̂ − x). The paper instead identifies geometry <em>and</em> material
-        parameters from several observations, using exact gradients through a 3D nonlinear solver.
+        parameters from several observations, using end-to-end derivatives of a discretized 3D nonlinear FE model.
       </figcaption>
     </figure>
 
