@@ -566,7 +566,7 @@
       'Maps the reference mesh to the unloaded shape. Its deformation gradient enters the stress calculation, so gradients flow back to the geometry.',
       'F₀ = ∇u₀ + I'],
     u: ['Forward solve, u',
-      'The total deformation from the reference mesh to the loaded state, solved with Newton’s method inside JAX-FEM.',
+      'The total deformation from the reference mesh to the loaded state, from a nonlinear finite element solve in JAX-FEM.',
       'F = ∇u + I'],
     ut: ['Physical deformation, ũ',
       'The deformation measured from the stress-free state. Stress follows from a hyperelastic strain energy whose material parameters are optimized along with the geometry.',
