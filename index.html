@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hyunoh Bae</title>
+  <meta name="description" content="Hyunoh Bae — Ph.D. student in Mechanical Engineering at Purdue University. Differentiable finite element methods, inverse problems, and soft-tissue biomechanics.">
+  <meta property="og:title" content="Hyunoh Bae">
+  <meta property="og:description" content="Differentiable finite element methods, inverse problems, and soft-tissue biomechanics.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#F5F3EC">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<nav class="nav" aria-label="Primary">
+  <div class="wrap nav-inner">
+    <a class="nav-name" href="#top">Hyunoh Bae</a>
+    <ul class="nav-links">
+      <li><a href="#research">Research</a></li>
+      <li><a href="#publications">Publications</a></li>
+      <li><a href="#cv">CV</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero wrap" id="top">
+  <div class="hero-text">
+    <h1>Hyunoh Bae</h1>
+    <p class="role">Ph.D. student in Mechanical Engineering<br>Purdue University</p>
+  </div>
+  <div class="hero-aside">
+    <p>
+      I work on computational mechanics. Most simulations predict how a known shape deforms. My research runs
+      the problem in reverse: starting from a medical image of tissue already deformed by gravity, I use
+      differentiable finite element models to recover its stress-free shape and its stiffness.
+    </p>
+    <p class="links">
+      <a href="mailto:bae103@purdue.edu">bae103@purdue.edu</a>
+      <a href="https://scholar.google.com/citations?user=YGc2pkcAAAAJ&amp;hl=en" target="_blank" rel="noopener">Google Scholar</a>
+      <a href="https://www.linkedin.com/in/hyunoh-bae-6931191b3/" target="_blank" rel="noopener">LinkedIn</a>
+    </p>
+  </div>
+</header>
+
+<figure class="fig fig-hero wrap" aria-label="Interactive finite element simulation of a beam under gravity">
+  <div class="plot" id="hero-canvas-wrap">
+    <canvas id="hero-canvas"></canvas>
+    <span class="hint" id="hero-hint">drag the beam</span>
+    <svg class="triad" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
+      <path d="M6 33 H32 M28 30 L32 33 L28 36" stroke="currentColor" stroke-width="1.3" fill="none"/>
+      <path d="M6 33 V7 M3 11 L6 7 L9 11" stroke="currentColor" stroke-width="1.3" fill="none"/>
+      <text x="34" y="36" font-size="9">1</text><text x="10" y="9" font-size="9">2</text>
+    </svg>
+  </div>
+  <figcaption>
+    <div class="cap-text">
+      <span class="fig-no">Figure 1</span>
+      A perforated neo-Hookean beam, clamped at the left, sagging under its own weight. The mesh, solver and
+      contour plot run live in your browser. Drag any part of the beam to load it.
+    </div>
+    <div class="controls">
+      <button class="ctl is-on" id="hero-gravity" type="button" aria-pressed="true">Gravity on</button>
+      <label class="ctl-range">Stiffness <input type="range" id="hero-stiff" min="-0.3" max="0.6" step="0.01" value="0"> <output id="hero-stiff-val">E × 1.00</output></label>
+      <label class="ctl-check"><input type="checkbox" id="hero-wire" checked> Mesh</label>
+      <label class="ctl-check"><input type="checkbox" id="hero-ghost"> Undeformed</label>
+      <button class="ctl" id="hero-reset" type="button">Reset</button>
+    </div>
+    <div class="cap-meta">
+      <span id="hero-status"></span>
+      <div class="colorbar" id="hero-legend"></div>
+    </div>
+  </figcaption>
+</figure>
+
+<main id="main">
+
+<section class="sec wrap" id="about">
+  <h2 class="sec-h">About</h2>
+  <div class="sec-body prose">
+    <p>
+      I am a Ph.D. student in the School of Mechanical Engineering at Purdue University, advised by
+      Prof. Hector Gomez. I started in August 2024. My work combines nonlinear finite element analysis,
+      automatic differentiation and biomechanics, with the goal of making patient-specific models trustworthy
+      enough for diagnosis and surgical planning.
+    </p>
+    <p>
+      Before Purdue, I studied Mechanical Engineering, with a minor in Mathematics, at the University of
+      St. Thomas in Minnesota. There I modeled composite materials with statistical volume elements and ran
+      molecular dynamics simulations of ferroelectrics.
+    </p>
+    <blockquote>
+      <p>It is difficult to say what is impossible, for the dream of yesterday is the hope of today and the reality of tomorrow.</p>
+      <footer>Robert H. Goddard</footer>
+    </blockquote>
+  </div>
+</section>
+
+<section class="sec wrap" id="research">
+  <h2 class="sec-h">Research</h2>
+  <div class="sec-body">
+    <article class="paper">
+      <h3 class="paper-title">
+        <a href="https://arxiv.org/abs/2609.18109" target="_blank" rel="noopener">Fully differentiable framework for inverse identification of geometry and material parameters with application to determining stress-free configuration of soft tissues</a>
+      </h3>
+      <p class="byline"><strong>Hyunoh Bae</strong>, Tianyi Hu, Adrian Buganza Tepole, Hector Gomez · <span class="mono">arXiv:2609.18109</span>, 2026 · <a href="https://arxiv.org/pdf/2609.18109" target="_blank" rel="noopener">PDF</a></p>
+
+      <dl class="summary prose">
+        <dt>Problem</dt>
+        <dd>MRI and CT scans show soft tissue after gravity and contact have already deformed it. If a
+          simulation treats that image as the stress-free starting shape, every prediction built on it is biased.
+          Neither the true unloaded shape nor the tissue's stiffness can be measured directly.</dd>
+        <dt>Approach</dt>
+        <dd>We make the entire nonlinear finite element solve differentiable (in JAX-FEM), so exact gradients flow
+          from the predicted shape back to both the unknown geometry and the material parameters. Both are
+          optimized together, using two or more images of the same body under different loads.</dd>
+        <dt>Result</dt>
+        <dd>On benchmark problems and on a patient-specific breast model built from MRI, with and without a stiff
+          tumor, the method recovers the unloaded shape and the region-wise material properties from
+          gravity-loaded observations alone.</dd>
+      </dl>
+    </article>
+
+    <figure class="fig fig-config">
+      <div class="config">
+        <svg class="config-svg" id="config-svg" viewBox="0 0 560 300" role="img" aria-label="Configuration mapping between reference, unloaded, predicted and observed configurations">
+          <g class="arrow" data-k="u" tabindex="0">
+            <path d="M106 80 H262"/><path d="M254 74 L264 80 L254 86"/>
+            <text x="164" y="68">u, F</text>
+          </g>
+          <g class="arrow" data-k="uh" tabindex="0">
+            <path d="M336 80 H452"/><path d="M444 74 L454 80 L444 86"/>
+            <text x="376" y="68">û, F̂</text>
+          </g>
+          <g class="arrow" data-k="u0" tabindex="0">
+            <path d="M92 110 L163 198"/><path d="M152 195 L164 200 L162 187"/>
+            <text x="58" y="168">u₀, F₀</text>
+          </g>
+          <g class="arrow" data-k="ut" tabindex="0">
+            <path d="M210 198 L278 110"/><path d="M267 113 L279 108 L277 121"/>
+            <text x="250" y="168">ũ, F̃</text>
+          </g>
+          <g class="node" data-k="ref" tabindex="0">
+            <circle cx="72" cy="80" r="34"/><text x="72" y="87" text-anchor="middle">Ω<tspan font-size="12" dy="5">X</tspan></text>
+            <text class="cap" x="72" y="30" text-anchor="middle">reference</text>
+          </g>
+          <g class="node" data-k="pred" tabindex="0">
+            <circle cx="300" cy="80" r="34"/><text x="300" y="87" text-anchor="middle">Ω<tspan font-size="12" dy="5">x</tspan></text>
+            <text class="cap" x="300" y="30" text-anchor="middle">predicted, loaded</text>
+          </g>
+          <g class="node" data-k="obs" tabindex="0">
+            <circle cx="490" cy="80" r="34"/><text x="490" y="87" text-anchor="middle">Ω<tspan font-size="12" dy="5">x̂</tspan></text>
+            <text class="cap" x="490" y="30" text-anchor="middle">observed (image)</text>
+          </g>
+          <g class="node" data-k="unl" tabindex="0">
+            <circle cx="186" cy="228" r="34"/><text x="186" y="235" text-anchor="middle">Ω<tspan font-size="12" dy="5">X̃</tspan></text>
+            <text class="cap" x="186" y="284" text-anchor="middle">unloaded, stress-free (unknown)</text>
+          </g>
+        </svg>
+        <div class="config-explain" id="config-explain" aria-live="polite"></div>
+      </div>
+      <figcaption>
+        <span class="fig-no">Figure 2</span>
+        The four configurations in the method. Select a node or an arrow to see what it represents.
+      </figcaption>
+    </figure>
+
+    <div class="findings prose">
+      <h3 class="sub-h">What we learned</h3>
+      <ol>
+        <li><strong>Diverse loading beats strong loading.</strong> Observations that mix deformation modes, such as
+          tension with compression or stretching with bending, identify the solution faster than larger loads of
+          a single kind.</li>
+        <li><strong>More observations help.</strong> Adding observed configurations improves convergence, even when
+          they share the same loading direction.</li>
+        <li><strong>A bad initial guess costs time, not accuracy.</strong> Poor starting material values lengthen the
+          early iterations, but with informative data the method converges to the same geometry and parameters.</li>
+      </ol>
+    </div>
+
+    <figure class="fig fig-demo">
+      <div class="demo">
+        <div>
+          <div class="plot" id="demo-canvas-wrap">
+            <canvas id="demo-canvas"></canvas>
+          </div>
+          <div class="controls">
+            <button class="ctl is-primary" id="demo-run" type="button">Solve</button>
+            <button class="ctl" id="demo-step" type="button">Step</button>
+            <button class="ctl" id="demo-reset" type="button">Reset</button>
+            <label class="ctl-check"><input type="checkbox" id="demo-truth"> Show ground truth</label>
+          </div>
+          <div class="cap-meta">
+            <span id="demo-status"></span>
+            <div class="colorbar" id="demo-legend"></div>
+          </div>
+        </div>
+        <div class="demo-side">
+          <h3 class="sub-h">Try it: undo gravity</h3>
+          <p>A soft body hangs from a wall, like breast tissue imaged while the patient stands. The scan only shows
+            the sagged shape. What did it look like before gravity acted on it?</p>
+          <p class="narration" id="demo-text" aria-live="polite"></p>
+          <div class="chart">
+            <canvas id="conv-chart" aria-label="Convergence plot of shape mismatch and geometry error"></canvas>
+            <p class="chart-axis"><span>error / height (log scale)</span><span>update</span></p>
+          </div>
+          <ul class="key">
+            <li><i class="k-obs"></i>Observed shape (target) and mismatch</li>
+            <li><i class="k-rec"></i>Recovered stress-free shape</li>
+            <li><i class="k-true"></i>Ground truth and geometry error</li>
+          </ul>
+        </div>
+      </div>
+      <figcaption>
+        <span class="fig-no">Figure 3</span>
+        A two-dimensional toy version of the inverse problem: one observation, known stiffness, and a simple
+        fixed-point update of the geometry. The paper goes further and identifies geometry <em>and</em> material
+        parameters from several observations, using exact gradients through a 3D nonlinear solver.
+      </figcaption>
+    </figure>
+
+    <h3 class="sub-h earlier-h">Earlier work, University of St. Thomas</h3>
+    <ul class="entries">
+      <li>
+        <span class="when">2021–2024</span>
+        <div>
+          <h4>Statistical volume elements for composites</h4>
+          <p class="meta">with Dr. Katherine Acton</p>
+          <p>Composites are random at the microscale, so a single representative cell is not enough. I characterized
+            mesoscale properties with statistical volume elements, using a reduced finite element stiffness matrix
+            to cut the cost, and smoothed SVE microstructures with a low-pass filter to reduce artificial stress
+            concentrations at their boundaries. <a href="https://hyunoh.notion.site/Statistical-Volume-Element-SVE-bf7b648c9c8748179dda4cd4a517dfc4" target="_blank" rel="noopener">Project notes</a></p>
+        </div>
+      </li>
+      <li>
+        <span class="when">2023</span>
+        <div>
+          <h4>SVE predictions against direct numerical simulation</h4>
+          <p class="meta">Summer research internship, University of Tennessee Space Institute</p>
+          <p>Compared the mechanical properties predicted by statistical volume elements with direct numerical
+            simulation of the full microstructure.</p>
+        </div>
+      </li>
+      <li>
+        <span class="when">2023–2024</span>
+        <div>
+          <h4>Molecular dynamics of ferroelectric materials</h4>
+          <p class="meta">with Dr. Jeong-Ho You</p>
+          <p>Ferroelectric MD is usually run under uniform strain and electric field. To study local fields around
+            defects, I ported <em>feram</em>, a Fortran MD code for bulk and thin-film ferroelectrics, to MATLAB.
+            <a href="https://hyunoh.notion.site/Ferroelectric-Material-Simulation-3db0443a129746c890dfd08a70c6fba2" target="_blank" rel="noopener">Project notes</a></p>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="sec wrap" id="publications">
+  <h2 class="sec-h">Publications</h2>
+  <div class="sec-body">
+    <ul class="entries pubs">
+      <li>
+        <span class="when">2026</span>
+        <p><strong>H. Bae</strong>, T. Hu, A. Buganza Tepole, H. Gomez. Fully differentiable framework for inverse
+          identification of geometry and material parameters with application to determining stress-free
+          configuration of soft tissues. <em>arXiv:2609.18109</em>.
+          <a href="https://arxiv.org/abs/2609.18109" target="_blank" rel="noopener">arXiv</a></p>
+      </li>
+      <li>
+        <span class="when">2024</span>
+        <p><strong>H. Bae</strong>, K. A. Acton. Computation of statistical volume element properties based on a
+          reduced stiffness matrix approach. <em>Finite Elements in Analysis and Design</em> 232, 104104.
+          <a href="https://doi.org/10.1016/j.finel.2023.104104" target="_blank" rel="noopener">DOI</a></p>
+      </li>
+    </ul>
+    <h3 class="sub-h">Talks and posters</h3>
+    <ul class="entries pubs">
+      <li>
+        <span class="when">2023</span>
+        <p>Statistical volume element material property characterization using a finite element based reduced
+          stiffness matrix approach. <em>17th U.S. National Congress on Computational Mechanics</em>, Albuquerque, NM.
+          Talk.</p>
+      </li>
+      <li>
+        <span class="when">2023</span>
+        <p>Composite material modeling using a modified finite element approach to characterize the mesoscale
+          properties of statistical volume elements. <em>National Conference on Undergraduate Research</em>. Poster.</p>
+      </li>
+      <li>
+        <span class="when">2022</span>
+        <p>Statistical modeling of composite material microstructures. <em>Inquiry Poster Session, University of
+          St. Thomas</em>. Poster.</p>
+      </li>
+    </ul>
+    <p class="note">Also on <a href="https://scholar.google.com/citations?user=YGc2pkcAAAAJ&amp;hl=en" target="_blank" rel="noopener">Google Scholar</a>.</p>
+  </div>
+</section>
+
+<section class="sec wrap" id="cv">
+  <h2 class="sec-h">CV</h2>
+  <div class="sec-body">
+    <h3 class="sub-h first">Education</h3>
+    <ul class="entries">
+      <li>
+        <span class="when">2024–</span>
+        <div>
+          <h4>Ph.D., Mechanical Engineering</h4>
+          <p class="meta">Purdue University, West Lafayette, IN · Advisor: Prof. Hector Gomez</p>
+        </div>
+      </li>
+      <li>
+        <span class="when">2021–2024</span>
+        <div>
+          <h4>B.S., Mechanical Engineering, minor in Mathematics</h4>
+          <p class="meta">University of St. Thomas, St. Paul, MN · GPA 3.92 / 4.0 (major 4.0 / 4.0)</p>
+        </div>
+      </li>
+    </ul>
+
+    <h3 class="sub-h">Experience</h3>
+    <ul class="entries">
+      <li>
+        <span class="when">2024–</span>
+        <div>
+          <h4>Graduate researcher, Purdue University</h4>
+          <p>Differentiable inverse finite element methods for soft-tissue biomechanics.</p>
+        </div>
+      </li>
+      <li>
+        <span class="when">2023</span>
+        <div>
+          <h4>Summer research intern, University of Tennessee Space Institute</h4>
+          <p>Statistical volume elements compared with direct numerical simulation.</p>
+        </div>
+      </li>
+      <li>
+        <span class="when">2023–2024</span>
+        <div>
+          <h4>Research assistant, University of St. Thomas</h4>
+          <p>Molecular dynamics of ferroelectric materials, with Dr. Jeong-Ho You.</p>
+        </div>
+      </li>
+      <li>
+        <span class="when">2021–2024</span>
+        <div>
+          <h4>Research assistant, University of St. Thomas</h4>
+          <p>Statistical volume element modeling of composites in ABAQUS with Python scripting, with Dr. Katherine Acton.</p>
+        </div>
+      </li>
+      <li>
+        <span class="when">2021–2024</span>
+        <div>
+          <h4>Teaching and mentoring, University of St. Thomas</h4>
+          <p>Teaching assistant for Dynamics and Mechanics of Materials (2022); resident advisor for 40+ students;
+            math tutor; Calculus II grader.</p>
+        </div>
+      </li>
+    </ul>
+
+    <h3 class="sub-h">Honors</h3>
+    <ul class="entries">
+      <li><span class="when">2023</span><p>Conference travel grant to present at USNCCM17</p></li>
+      <li><span class="when">2022</span><p>Young Scholars Grant for summer research ($5,000), University of St. Thomas</p></li>
+      <li><span class="when">2022, 2023</span><p>Summer housing grant for research, University of St. Thomas</p></li>
+      <li><span class="when">2021–2024</span><p>International merit scholarship (70% of tuition), University of St. Thomas</p></li>
+      <li><span class="when"></span><p>Dean’s List, University of St. Thomas</p></li>
+    </ul>
+
+    <h3 class="sub-h">Skills</h3>
+    <dl class="skills">
+      <dt>Methods</dt>
+      <dd>Nonlinear finite elements, hyperelasticity, inverse problems, automatic differentiation, PDE-constrained optimization, multiscale modeling, molecular dynamics</dd>
+      <dt>Software</dt>
+      <dd>Python, JAX, JAX-FEM, ABAQUS, MATLAB, C, Fortran, 3D Slicer, 3D modeling</dd>
+      <dt>Languages</dt>
+      <dd>Korean (fluent), English</dd>
+    </dl>
+  </div>
+</section>
+
+<section class="sec wrap" id="aside">
+  <h2 class="sec-h">Aside</h2>
+  <div class="sec-body">
+    <figure class="fig fig-mc">
+      <div class="mc">
+        <div class="mc-plot"><canvas id="mc-canvas" aria-label="Random points in a unit square"></canvas></div>
+        <div class="mc-text">
+          <h3 class="sub-h">Finding π by throwing darts</h3>
+          <p>Scatter random points over a unit square and count the ones that land inside the quarter circle. The
+            fraction tends to π/4. The error shrinks only like 1/√n, which is why sampling methods need patience.</p>
+          <table class="mc-table">
+            <tr><th scope="row">Points</th><td id="mc-n">0</td></tr>
+            <tr><th scope="row">Estimate of π</th><td id="mc-pi">–</td></tr>
+            <tr><th scope="row">Absolute error</th><td id="mc-err">–</td></tr>
+          </table>
+          <div class="controls">
+            <button class="ctl is-primary" id="mc-run" type="button">Throw points</button>
+            <button class="ctl" id="mc-reset" type="button">Reset</button>
+            <a href="https://hyunoh.notion.site/Finding-pi-via-Monte-Carlo-Simulation-ff1752147e4f4b76903a718a59bdbfa8" target="_blank" rel="noopener">Notes</a>
+          </div>
+        </div>
+      </div>
+      <figcaption><span class="fig-no">Figure 4</span> Monte Carlo estimate of π. Points inside the quarter circle are blue; points outside are red.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="sec wrap" id="contact">
+  <h2 class="sec-h">Contact</h2>
+  <div class="sec-body prose">
+    <p>I am happy to talk about differentiable simulation, inverse problems and computational biomechanics.
+      The best way to reach me is by email at <a href="mailto:bae103@purdue.edu">bae103@purdue.edu</a>.
+      I am also on <a href="https://www.linkedin.com/in/hyunoh-bae-6931191b3/" target="_blank" rel="noopener">LinkedIn</a>
+      and <a href="https://scholar.google.com/citations?user=YGc2pkcAAAAJ&amp;hl=en" target="_blank" rel="noopener">Google Scholar</a>.</p>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot wrap">
+  <span>© <span id="year">2026</span> Hyunoh Bae</span>
+  <span>School of Mechanical Engineering, Purdue University</span>
+</footer>
+
+<script src="assets/js/fem.js"></script>
+<script src="assets/js/main.js"></script>
+</body>
+</html>
