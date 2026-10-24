@@ -1,5 +1,5 @@
 /* main.js — page interactions: Figure 1 (live beam), Figure 2 (configuration
-   diagram), Figure 3 (inverse-unloading demo), Figure 4 (Monte Carlo), nav.
+   diagram), Figure 3 (inverse-unloading demo), nav.
    Depends on fem.js. */
 (function () {
   'use strict';
@@ -349,7 +349,7 @@
     const mis = new Float64Array(2 * mesh.n); // x_obs - x_pred from the last solve
     let xObs = null, Xu = null, phase = 'observe', hasMis = false, auto = false, budget = 0;
     let history = []; // [{ res, geo }] per solve; index = number of updates applied
-    let vmax = 1, alpha = +el.alpha.value;
+    let vmax = 2.3, alpha = +el.alpha.value; // vmax is reset from the scan's peak stress
 
     const say = (html) => { el.text.innerHTML = html; };
     const setButtons = () => {
@@ -595,65 +595,6 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Figure 4: Monte Carlo estimate of pi
-  // ---------------------------------------------------------------------------
-
-  function initMonteCarlo() {
-    const canvas = document.getElementById('mc-canvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const out = { n: document.getElementById('mc-n'), pi: document.getElementById('mc-pi'), err: document.getElementById('mc-err') };
-    const run = document.getElementById('mc-run');
-    let n = 0, hits = 0, running = false, size = 0;
-
-    const arc = () => {
-      ctx.strokeStyle = INK;
-      ctx.lineWidth = 1.4;
-      ctx.beginPath(); ctx.arc(0, size, size, -Math.PI / 2, 0); ctx.stroke();
-    };
-    const reset = () => {
-      const r = canvas.parentElement.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2);
-      size = r.width;
-      canvas.width = size * dpr; canvas.height = size * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, size, size);
-      n = hits = 0;
-      arc();
-      out.n.textContent = '0'; out.pi.textContent = '–'; out.err.textContent = '–';
-    };
-    const tick = () => {
-      if (!running) return;
-      const batch = n < 2000 ? 40 : n < 20000 ? 400 : 2000;
-      for (let k = 0; k < batch; k++) {
-        const x = Math.random(), y = Math.random(), inside = x * x + y * y <= 1;
-        if (inside) hits++;
-        n++;
-        if (n <= 30000) {
-          ctx.fillStyle = inside ? 'rgba(46,74,122,0.7)' : 'rgba(184,58,34,0.7)';
-          ctx.fillRect(x * size - 1, (1 - y) * size - 1, 2, 2);
-        }
-      }
-      arc();
-      const est = 4 * hits / n;
-      out.n.textContent = n.toLocaleString('en-US');
-      out.pi.textContent = est.toFixed(5);
-      out.err.textContent = Math.abs(est - Math.PI).toExponential(1);
-      if (n >= 1e6) { running = false; run.textContent = 'Throw points'; return; }
-      requestAnimationFrame(tick);
-    };
-    run.addEventListener('click', () => {
-      if (n >= 1e6) reset();
-      running = !running;
-      run.textContent = running ? 'Pause' : 'Throw points';
-      if (running) requestAnimationFrame(tick);
-    });
-    document.getElementById('mc-reset').addEventListener('click', () => {
-      running = false; run.textContent = 'Throw points'; reset();
-    });
-    reset();
-  }
-
-  // ---------------------------------------------------------------------------
   // Navigation
   // ---------------------------------------------------------------------------
 
@@ -679,6 +620,5 @@
     initHero();
     initDemo();
     initConfigDiagram();
-    initMonteCarlo();
   });
 })();

@@ -283,16 +283,6 @@ blockquote footer { font-size: 15px; color: var(--graphite); }
 .skills dt { font-family: var(--mono); font-size: 13px; color: var(--graphite); padding-top: 4px; }
 .skills dd { margin: 0; max-width: var(--measure); }
 
-/* Monte Carlo */
-.mc { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 36px; align-items: start; }
-.mc-plot { aspect-ratio: 1; border: 1px solid var(--ink); background: var(--paper-hi); }
-.mc-plot canvas { width: 100%; height: 100%; display: block; }
-.mc-text .sub-h { margin-top: 0; }
-.mc-text p { margin: 0 0 16px; max-width: 52ch; }
-.mc-table { border-collapse: collapse; font-size: 16px; margin-bottom: 4px; }
-.mc-table th { text-align: left; font-weight: 400; color: var(--graphite); padding: 3px 28px 3px 0; }
-.mc-table td { font-family: var(--mono); font-size: 14.5px; font-variant-numeric: tabular-nums; }
-
 /* Footer */
 .foot {
   display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px;
@@ -328,8 +318,6 @@ blockquote footer { font-size: 15px; color: var(--graphite); }
   #hero-canvas-wrap { aspect-ratio: 4 / 3; }
   .config { padding: 16px; }
   .summary, .entries > li, .skills { grid-template-columns: minmax(0, 1fr); gap: 4px; }
-  .mc { grid-template-columns: minmax(0, 1fr); }
-  .mc-plot { max-width: 300px; }
   .colorbar .cb-bar i { width: 13px; }
 }
 @media (max-width: 420px) {

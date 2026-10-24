@@ -202,8 +202,9 @@
     </div>
 
     <figure class="fig fig-demo">
-      <h3 class="sub-h">Try it: undo gravity</h3>
+      <h3 class="sub-h">A toy problem: undo gravity</h3>
       <p class="demo-intro">
+        This is a deliberately simplified 2D example to show the idea, not a simulation from the paper.
         A soft body hangs from a wall, like breast tissue imaged while the patient stands. The scan only shows the
         sagged shape (red dashes in b). To find the shape it had before gravity acted, we guess a stress-free shape
         (a), let gravity act on it (b), compare the result with the scan, and move the guess by a fraction α of the
@@ -410,33 +411,6 @@
       <dt>Languages</dt>
       <dd>Korean (fluent), English</dd>
     </dl>
-  </div>
-</section>
-
-<section class="sec wrap" id="aside">
-  <h2 class="sec-h">Aside</h2>
-  <div class="sec-body">
-    <figure class="fig fig-mc">
-      <div class="mc">
-        <div class="mc-plot"><canvas id="mc-canvas" aria-label="Random points in a unit square"></canvas></div>
-        <div class="mc-text">
-          <h3 class="sub-h">Finding π by throwing darts</h3>
-          <p>Scatter random points over a unit square and count the ones that land inside the quarter circle. The
-            fraction tends to π/4. The error shrinks only like 1/√n, which is why sampling methods need patience.</p>
-          <table class="mc-table">
-            <tr><th scope="row">Points</th><td id="mc-n">0</td></tr>
-            <tr><th scope="row">Estimate of π</th><td id="mc-pi">–</td></tr>
-            <tr><th scope="row">Absolute error</th><td id="mc-err">–</td></tr>
-          </table>
-          <div class="controls">
-            <button class="ctl is-primary" id="mc-run" type="button">Throw points</button>
-            <button class="ctl" id="mc-reset" type="button">Reset</button>
-            <a href="https://hyunoh.notion.site/Finding-pi-via-Monte-Carlo-Simulation-ff1752147e4f4b76903a718a59bdbfa8" target="_blank" rel="noopener">Notes</a>
-          </div>
-        </div>
-      </div>
-      <figcaption><span class="fig-no">Figure 4</span> Monte Carlo estimate of π. Points inside the quarter circle are blue; points outside are red.</figcaption>
-    </figure>
   </div>
 </section>
 
