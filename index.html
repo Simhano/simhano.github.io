@@ -50,6 +50,21 @@
   </div>
 </header>
 
+<div class="hook wrap">
+  <h2>Can we ever see an object in its unloaded state on Earth?</h2>
+  <div class="hook-body">
+    <p>
+      Not really. Gravity acts on everything, all the time. The beam below was modeled perfectly straight and
+      stress-free, yet it sags the moment it exists here. Switch gravity off to see the shape no camera on Earth
+      can record.
+    </p>
+    <p>
+      Medical images have the same problem: every scan shows tissue already deformed by its own weight.
+      <a href="#research">My research</a> works backwards from that image to the unloaded shape.
+    </p>
+  </div>
+</div>
+
 <figure class="fig fig-hero wrap" aria-label="Interactive finite element simulation of a beam under gravity">
   <div class="plot" id="hero-canvas-wrap">
     <canvas id="hero-canvas"></canvas>
@@ -63,14 +78,15 @@
   <figcaption>
     <div class="cap-text">
       <span class="fig-no">Figure 1</span>
-      A perforated neo-Hookean beam, clamped at the left, sagging under its own weight. The mesh, solver and
-      contour plot run live in your browser. Drag any part of the beam to load it.
+      A perforated neo-Hookean beam, clamped at the left. The dashed outline is its unloaded shape; the colored
+      body is what gravity makes of it. Turn gravity off to watch it spring back, or drag the beam to load it
+      further. The mesh, solver and contour plot run live in your browser.
     </div>
     <div class="controls">
       <button class="ctl is-on" id="hero-gravity" type="button" aria-pressed="true">Gravity on</button>
       <label class="ctl-range">Stiffness <input type="range" id="hero-stiff" min="-0.3" max="0.6" step="0.01" value="0"> <output id="hero-stiff-val">E × 1.00</output></label>
       <label class="ctl-check"><input type="checkbox" id="hero-wire" checked> Mesh</label>
-      <label class="ctl-check"><input type="checkbox" id="hero-ghost"> Undeformed</label>
+      <label class="ctl-check"><input type="checkbox" id="hero-ghost" checked> Unloaded shape</label>
       <button class="ctl" id="hero-reset" type="button">Reset</button>
     </div>
     <div class="cap-meta">
@@ -186,42 +202,54 @@
     </div>
 
     <figure class="fig fig-demo">
-      <div class="demo">
+      <h3 class="sub-h">Try it: undo gravity</h3>
+      <p class="demo-intro">
+        A soft body hangs from a wall, like breast tissue imaged while the patient stands. The scan only shows the
+        sagged shape (red dashes in b). To find the shape it had before gravity acted, we guess a stress-free shape
+        (a), let gravity act on it (b), compare the result with the scan, and move the guess by a fraction α of the
+        mismatch. Then we repeat.
+      </p>
+      <div class="panels">
+        <div class="panel">
+          <p class="panel-h"><span class="mono">(a)</span> Stress-free shape: our guess</p>
+          <div class="plot demo-plot"><canvas id="demo-canvas-a" aria-label="Current guess of the stress-free shape"></canvas></div>
+        </div>
+        <div class="panel">
+          <p class="panel-h"><span class="mono">(b)</span> Under gravity: prediction vs. scan</p>
+          <div class="plot demo-plot"><canvas id="demo-canvas-b" aria-label="Predicted loaded shape compared with the scanned shape"></canvas></div>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="ctl is-primary" id="demo-run" type="button">Solve</button>
+        <button class="ctl" id="demo-step" type="button">Step</button>
+        <button class="ctl" id="demo-reset" type="button">Reset</button>
+        <label class="ctl-range">Step size α <input type="range" id="demo-alpha" min="0.1" max="1" step="0.05" value="0.2"> <output id="demo-alpha-val">0.20</output></label>
+        <label class="ctl-check"><input type="checkbox" id="demo-truth"> True stress-free shape</label>
+      </div>
+      <div class="demo-bottom">
         <div>
-          <div class="plot" id="demo-canvas-wrap">
-            <canvas id="demo-canvas"></canvas>
-          </div>
-          <div class="controls">
-            <button class="ctl is-primary" id="demo-run" type="button">Solve</button>
-            <button class="ctl" id="demo-step" type="button">Step</button>
-            <button class="ctl" id="demo-reset" type="button">Reset</button>
-            <label class="ctl-check"><input type="checkbox" id="demo-truth"> Show ground truth</label>
+          <p class="narration" id="demo-text" aria-live="polite"></p>
+          <ul class="key">
+            <li><i class="k-rec"></i>(a) Current guess of the stress-free shape; arrows show the next update</li>
+            <li><i class="k-true"></i>(a) True stress-free shape</li>
+            <li><i class="k-obs"></i>(b) Scanned shape; arrows show the mismatch</li>
+          </ul>
+        </div>
+        <div>
+          <div class="chart">
+            <canvas id="conv-chart" aria-label="Convergence plot of shape mismatch and geometry error"></canvas>
+            <p class="chart-axis"><span>error / height (log scale)</span><span>update</span></p>
           </div>
           <div class="cap-meta">
             <span id="demo-status"></span>
             <div class="colorbar" id="demo-legend"></div>
           </div>
         </div>
-        <div class="demo-side">
-          <h3 class="sub-h">Try it: undo gravity</h3>
-          <p>A soft body hangs from a wall, like breast tissue imaged while the patient stands. The scan only shows
-            the sagged shape. What did it look like before gravity acted on it?</p>
-          <p class="narration" id="demo-text" aria-live="polite"></p>
-          <div class="chart">
-            <canvas id="conv-chart" aria-label="Convergence plot of shape mismatch and geometry error"></canvas>
-            <p class="chart-axis"><span>error / height (log scale)</span><span>update</span></p>
-          </div>
-          <ul class="key">
-            <li><i class="k-obs"></i>Observed shape (target) and mismatch</li>
-            <li><i class="k-rec"></i>Recovered stress-free shape</li>
-            <li><i class="k-true"></i>Ground truth and geometry error</li>
-          </ul>
-        </div>
       </div>
       <figcaption>
         <span class="fig-no">Figure 3</span>
-        A two-dimensional toy version of the inverse problem: one observation, known stiffness, and a simple
-        fixed-point update of the geometry. The paper goes further and identifies geometry <em>and</em> material
+        A two-dimensional toy version of the inverse problem: one observation, known stiffness, and a relaxed
+        fixed-point update X̃ ← X̃ + α (x̂ − x). The paper instead identifies geometry <em>and</em> material
         parameters from several observations, using exact gradients through a 3D nonlinear solver.
       </figcaption>
     </figure>

@@ -262,9 +262,19 @@
       const { ctx } = view;
       ctx.clearRect(0, 0, view.w, view.h);
       drawWall(view, 0, -0.08, H + 0.08);
-      if (ui.ghost.checked) drawEdges(view, mesh.boundaryEdges, mesh.X, GRAPHITE, 1, [4, 4]);
       drawContours(view, body, body.x, vmax, { wire: ui.wire.checked });
+      if (ui.ghost.checked) {
+        drawEdges(view, mesh.boundaryEdges, mesh.X, INK, 1.2, [5, 4]);
+        ctx.font = `italic 14px "Source Serif 4", Georgia, serif`;
+        ctx.fillStyle = INK;
+        ctx.textAlign = 'right';
+        ctx.fillText('unloaded shape', view.px(L), view.py(H) - 8);
+        ctx.textAlign = 'left';
+      }
       drawGravity(view, gravityOn, 26, 16);
+      ctx.font = `14px "Source Serif 4", Georgia, serif`;
+      ctx.fillStyle = GRAPHITE;
+      ctx.fillText(gravityOn ? 'on Earth' : 'gravity off', 50, 30);
       if (grab) {
         const a = grab.anchor;
         const x0 = view.px(body.x[2 * a]), y0 = view.py(body.x[2 * a + 1]);
@@ -286,10 +296,25 @@
   // Figure 3: recover the stress-free shape of a gravity-loaded body
   // ---------------------------------------------------------------------------
 
+  /** Fill every triangle of a mesh, placed at positions x, with one color. */
+  function fillMesh(view, mesh, x, color) {
+    const { T, m } = mesh, p = new Path2D();
+    for (let e = 0; e < m; e++) {
+      const i = T[3 * e], j = T[3 * e + 1], k = T[3 * e + 2];
+      p.moveTo(view.px(x[2 * i]), view.py(x[2 * i + 1]));
+      p.lineTo(view.px(x[2 * j]), view.py(x[2 * j + 1]));
+      p.lineTo(view.px(x[2 * k]), view.py(x[2 * k + 1]));
+      p.closePath();
+    }
+    view.ctx.fillStyle = color;
+    view.ctx.fill(p);
+  }
+
   function initDemo() {
-    const canvas = document.getElementById('demo-canvas');
-    if (!canvas) return;
-    const a = 1.0, b = 1.1, h = 0.09, G = 0.8, TOL = 1e-5, MAX_IT = 12;
+    const canvasA = document.getElementById('demo-canvas-a');
+    const canvasB = document.getElementById('demo-canvas-b');
+    if (!canvasA || !canvasB) return;
+    const a = 1.0, b = 1.1, h = 0.09, G = 0.8, TOL = 1e-5, MAX_IT = 80, DONE = 2e-4;
     const bnd = [];
     const K = Math.round(Math.PI * Math.sqrt((a * a + b * b) / 2) / h);
     for (let i = 0; i <= K; i++) {
@@ -304,41 +329,57 @@
     const body = new Body(mesh, { mu: 1, lambda: 10, rho: 1, eta: 0 });
     body.fix((x) => x < 1e-6);
 
-    const view = makeView(canvas, [-0.35, -1.55, 1.4, 1.35]);
+    const box = [-0.3, -1.75, 1.3, 1.25];
+    const viewA = makeView(canvasA, box), viewB = makeView(canvasB, box);
+    // Every other free boundary node carries a mismatch / update arrow.
+    const arrowNodes = [...new Set(mesh.boundaryEdges)].filter((i) => !body.fixed[i]).filter((_, q) => q % 2 === 0);
     const el = {
       run: document.getElementById('demo-run'),
       step: document.getElementById('demo-step'),
       reset: document.getElementById('demo-reset'),
       truth: document.getElementById('demo-truth'),
+      alpha: document.getElementById('demo-alpha'),
+      alphaVal: document.getElementById('demo-alpha-val'),
       text: document.getElementById('demo-text'),
       status: document.getElementById('demo-status'),
       chart: document.getElementById('conv-chart'),
       legend: document.getElementById('demo-legend'),
     };
     const height = 2 * b;
-    let xObs = null, Xu = null, phase = 'observe', it = 0, auto = false, budget = 0;
-    let history = []; // [{ res, geo }]
-    let vmax = 1;
+    const mis = new Float64Array(2 * mesh.n); // x_obs - x_pred from the last solve
+    let xObs = null, Xu = null, phase = 'observe', hasMis = false, auto = false, budget = 0;
+    let history = []; // [{ res, geo }] per solve; index = number of updates applied
+    let vmax = 1, alpha = +el.alpha.value;
 
     const say = (html) => { el.text.innerHTML = html; };
     const setButtons = () => {
       const busy = phase === 'observe' || phase === 'solving';
-      el.run.disabled = busy || phase === 'done';
+      el.run.disabled = (busy && !auto) || phase === 'done' || phase === 'observe';
       el.step.disabled = busy || phase === 'done';
-      el.run.textContent = auto && phase !== 'done' ? 'Solving…' : 'Solve';
+      el.run.textContent = auto && phase !== 'done' ? 'Pause' : 'Solve';
     };
 
     function start() {
       body.setReference(mesh.X);
       body.reset();
-      xObs = null; Xu = null; it = 0; history = []; auto = false;
+      xObs = null; Xu = null; history = []; hasMis = false; auto = false;
+      mis.fill(0);
       phase = 'observe';
       say('Generating a synthetic scan: placing the true stress-free shape under gravity…');
       setButtons();
+      drawChart();
     }
 
     function beginIteration() {
-      // Re-solve with the current reference guess; warm start from last solution.
+      // Move the guess by a fraction of the last mismatch: X <- X + alpha (x_obs - x_pred)
+      if (hasMis) {
+        for (let i = 0; i < mesh.n; i++) {
+          if (body.fixed[i]) continue;
+          Xu[2 * i] += alpha * mis[2 * i];
+          Xu[2 * i + 1] += alpha * mis[2 * i + 1];
+        }
+      }
+      // Re-solve with the new reference; warm start from the last solution.
       const prev = body.Xref;
       body.setReference(Xu);
       for (let i = 0; i < body.x.length; i++) body.x[i] += Xu[i] - prev[i];
@@ -350,41 +391,50 @@
     function finishIteration() {
       let res = 0, geo = 0;
       for (let i = 0; i < mesh.n; i++) {
-        if (body.fixed[i]) continue;
-        const rx = xObs[2 * i] - body.x[2 * i], ry = xObs[2 * i + 1] - body.x[2 * i + 1];
-        res = Math.max(res, Math.hypot(rx, ry));
+        if (body.fixed[i]) { mis[2 * i] = mis[2 * i + 1] = 0; continue; }
+        mis[2 * i] = xObs[2 * i] - body.x[2 * i];
+        mis[2 * i + 1] = xObs[2 * i + 1] - body.x[2 * i + 1];
+        res = Math.max(res, Math.hypot(mis[2 * i], mis[2 * i + 1]));
         geo = Math.max(geo, Math.hypot(Xu[2 * i] - mesh.X[2 * i], Xu[2 * i + 1] - mesh.X[2 * i + 1]));
       }
+      hasMis = true;
       history.push({ res: res / height, geo: geo / height });
+      const k = history.length - 1;
       const pct = (100 * res / height).toFixed(res / height < 0.01 ? 3 : 1);
-      if (it === 0) {
-        say(`<b>Update 0, the naive guess.</b> Treat the imaged shape as if it were stress-free and apply gravity again. ` +
-            `The model sags a second time; the mismatch is ${pct}% of the body's height. This is the bias the paper removes.`);
-      } else if (res / height < 2e-4 || it >= MAX_IT) {
-        say(`<b>Converged after ${it} updates.</b> Under gravity, the recovered stress-free shape (blue) now reproduces the ` +
-            `observed shape to within ${pct}% of its height. Turn on the ground truth to compare.`);
-        phase = 'done'; auto = false; setButtons(); drawChart(); return;
+      if (k === 0) {
+        say(`<b>The naive guess.</b> Treat the scan as if it were stress-free and apply gravity again. ` +
+            `The body sags a second time; the mismatch in (b) is ${pct}% of its height. ` +
+            `The blue arrows in (a) show the correction: α = ${alpha.toFixed(2)} of that mismatch. ` +
+            `Press <b>Solve</b> or <b>Step</b>.`);
+        phase = 'ready';
+      } else if (res / height < DONE || k >= MAX_IT) {
+        say(`<b>Converged after ${k} updates.</b> Under gravity, the guess in (a) now sags into the scanned shape in (b) ` +
+            `to within ${pct}% of its height. Show the true stress-free shape to compare, or reset and try a larger α.`);
+        phase = 'done'; auto = false;
       } else {
-        say(`<b>Update ${it}.</b> Move the stress-free guess by the remaining mismatch and solve the nonlinear problem again. ` +
-            `Mismatch: ${pct}% of the height.`);
+        say(`<b>Update ${k}.</b> The guess in (a) moved by α × mismatch, and gravity was applied again. ` +
+            `Remaining mismatch in (b): ${pct}% of the height.`);
+        phase = 'ready';
       }
-      // Fixed-point update of the free nodes: X <- X + (x_obs - x_pred)
-      for (let i = 0; i < mesh.n; i++) {
-        if (body.fixed[i]) continue;
-        Xu[2 * i] += xObs[2 * i] - body.x[2 * i];
-        Xu[2 * i + 1] += xObs[2 * i + 1] - body.x[2 * i + 1];
-      }
-      it++;
-      phase = 'ready';
       setButtons();
       drawChart();
-      if (auto) budget = 18; // short pause so each update is visible
+      if (auto) budget = 6; // short pause so each update is visible
     }
 
-    el.run.addEventListener('click', () => { auto = true; if (phase === 'ready') beginIteration(); setButtons(); });
+    el.run.addEventListener('click', () => {
+      if (auto) { auto = false; setButtons(); return; }
+      auto = true;
+      if (phase === 'ready') beginIteration();
+      setButtons();
+    });
     el.step.addEventListener('click', () => { auto = false; if (phase === 'ready') beginIteration(); });
     el.reset.addEventListener('click', start);
     el.truth.addEventListener('change', draw);
+    el.alpha.addEventListener('input', () => {
+      alpha = +el.alpha.value;
+      el.alphaVal.textContent = alpha.toFixed(2);
+      draw();
+    });
 
     function drawChart() {
       const c = el.chart, ctx = c.getContext('2d');
@@ -394,7 +444,8 @@
       const W = r.width, Hh = r.height, padL = 40, padB = 18, padT = 6;
       ctx.clearRect(0, 0, W, Hh);
       const lo = -5, hi = 0; // log10 range
-      const X = (k) => padL + (W - padL - 8) * k / MAX_IT;
+      const xMax = Math.max(10, Math.ceil((history.length - 1) / 10) * 10);
+      const X = (k) => padL + (W - padL - 8) * k / xMax;
       const Y = (v) => padT + (Hh - padT - padB) * (hi - Math.max(lo, Math.log10(v))) / (hi - lo);
       ctx.font = `11px ${MONO}`;
       ctx.fillStyle = GRAPHITE;
@@ -405,38 +456,64 @@
         ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - 8, y); ctx.stroke();
         ctx.fillText(p === 0 ? '1' : `1e${p}`, 0, y + 4);
       }
-      for (let k = 0; k <= MAX_IT; k += 3) ctx.fillText(String(k), X(k) - 3, Hh - 3);
+      const tick = xMax <= 20 ? 5 : 10;
+      for (let k = 0; k <= xMax; k += tick) ctx.fillText(String(k), X(k) - 3, Hh - 3);
       const line = (key, color, dash) => {
         if (!history.length) return;
         ctx.strokeStyle = ctx.fillStyle = color; ctx.lineWidth = 1.6; ctx.setLineDash(dash);
         ctx.beginPath();
         history.forEach((hh, k) => (k ? ctx.lineTo : ctx.moveTo).call(ctx, X(k), Y(hh[key])));
         ctx.stroke(); ctx.setLineDash([]);
-        history.forEach((hh, k) => { ctx.beginPath(); ctx.arc(X(k), Y(hh[key]), 2.5, 0, 7); ctx.fill(); });
+        history.forEach((hh, k) => { ctx.beginPath(); ctx.arc(X(k), Y(hh[key]), 2.2, 0, 7); ctx.fill(); });
       };
-      line('geo', GRAPHITE, [2, 3]);
+      line('geo', BLUEPRINT, [2, 3]);
       line('res', VERMILION, [5, 3]);
     }
 
-    function draw() {
-      const { ctx } = view;
-      ctx.clearRect(0, 0, view.w, view.h);
-      drawWall(view, 0, -b - 0.1, b + 0.1);
-      if (el.truth.checked) drawEdges(view, mesh.boundaryEdges, mesh.X, GRAPHITE, 1.8, [2, 4]);
-      if (Xu && phase !== 'observe') {
-        drawEdges(view, mesh.edges, Xu, 'rgba(46,74,122,0.14)', 0.6);
-        drawEdges(view, mesh.boundaryEdges, Xu, BLUEPRINT, 1.8);
+    /** Arrows from points p (+ scale * d) at the arrow nodes, skipping tiny ones. */
+    function drawVectors(view, p, d, scale, color) {
+      for (const i of arrowNodes) {
+        const x0 = view.px(p[2 * i]), y0 = view.py(p[2 * i + 1]);
+        const x1 = view.px(p[2 * i] + scale * d[2 * i]), y1 = view.py(p[2 * i + 1] + scale * d[2 * i + 1]);
+        if (Math.hypot(x1 - x0, y1 - y0) > 4) drawArrow(view.ctx, x0, y0, x1, y1, color, 5);
       }
-      drawContours(view, body, body.x, vmax, { wire: true, alpha: phase === 'observe' ? 0.5 : 0.9 });
-      if (xObs) drawEdges(view, mesh.boundaryEdges, xObs, VERMILION, 2, [7, 5]);
-      drawGravity(view, true, view.w - 30, 16);
+    }
+
+    function draw() {
+      const showArrows = hasMis && phase !== 'solving' && phase !== 'observe';
+
+      // (a) the stress-free guess, which is what we optimize
+      let ctx = viewA.ctx;
+      ctx.clearRect(0, 0, viewA.w, viewA.h);
+      drawWall(viewA, 0, -b - 0.1, b + 0.1);
+      if (Xu) {
+        fillMesh(viewA, mesh, Xu, 'rgba(46,74,122,0.08)');
+        drawEdges(viewA, mesh.edges, Xu, 'rgba(46,74,122,0.25)', 0.6);
+        drawEdges(viewA, mesh.boundaryEdges, Xu, BLUEPRINT, 1.8);
+        if (showArrows && phase !== 'done') drawVectors(viewA, Xu, mis, alpha, BLUEPRINT);
+      }
+      if (el.truth.checked) drawEdges(viewA, mesh.boundaryEdges, mesh.X, INK, 1.6, [2, 4]);
+      ctx.font = `italic 14px "Source Serif 4", Georgia, serif`;
+      ctx.fillStyle = GRAPHITE;
+      ctx.textAlign = 'right';
+      ctx.fillText('no gravity', viewA.w - 12, 24);
+      ctx.textAlign = 'left';
+
+      // (b) the guess under gravity, compared with the scan
+      ctx = viewB.ctx;
+      ctx.clearRect(0, 0, viewB.w, viewB.h);
+      drawWall(viewB, 0, -b - 0.1, b + 0.1);
+      drawContours(viewB, body, body.x, vmax, { wire: true, alpha: phase === 'observe' ? 0.5 : 0.9 });
+      if (xObs) drawEdges(viewB, mesh.boundaryEdges, xObs, VERMILION, 2, [7, 5]);
+      if (showArrows) drawVectors(viewB, body.x, mis, 1, VERMILION);
+      drawGravity(viewB, true, viewB.w - 30, 16);
     }
 
     function frame() {
       if (phase === 'observe' || phase === 'solving') {
         const tol = phase === 'observe' ? TOL / 10 : TOL;
         const r = body.relax(0, -G, { maxSteps: 1200, tol });
-        el.status.textContent = `dynamic relaxation · residual ${r.residual.toExponential(1)}`;
+        el.status.textContent = `solving update ${history.length} · residual ${r.residual.toExponential(1)}`;
         if (r.residual < tol) {
           if (phase === 'observe') {
             xObs = Float64Array.from(body.x);
@@ -445,11 +522,11 @@
             for (let e = 0; e < mesh.m; e++) peak = Math.max(peak, body.mises[e]);
             vmax = peak * 1.6;
             buildLegend(el.legend, vmax, 'Mises stress');
-            phase = 'ready';
-            say('The dashed red outline is what a scan would show: tissue <b>already deformed by gravity</b>. ' +
-                'Its true stress-free shape is unknown. Press <b>Solve</b> to recover it.');
-            setButtons();
-            drawChart();
+            // Panel (b) must always show the current guess under gravity, so solve
+            // the naive guess (the scan itself) right away.
+            say('The red dashes in (b) are the scan: tissue <b>already deformed by gravity</b>. ' +
+                'Our first guess in (a) is the naive one, the scan itself. Applying gravity to it…');
+            beginIteration();
           } else {
             finishIteration();
           }
@@ -457,13 +534,15 @@
       } else if (phase === 'ready' && auto) {
         if (--budget <= 0) beginIteration();
       } else {
-        el.status.textContent = phase === 'done' ? `converged in ${it} updates` : `${mesh.n} nodes · ${mesh.m} linear triangles`;
+        el.status.textContent = phase === 'done'
+          ? `converged in ${history.length - 1} updates · α = ${alpha.toFixed(2)}`
+          : `${mesh.n} nodes · ${mesh.m} linear triangles`;
       }
       draw();
     }
-    view.onResize = () => { draw(); drawChart(); };
+    viewA.onResize = viewB.onResize = () => { draw(); drawChart(); };
     start();
-    whileVisible(canvas, frame);
+    whileVisible(canvasB, frame);
   }
 
   // ---------------------------------------------------------------------------
